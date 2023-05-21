@@ -1,3 +1,7 @@
+#include <QRegularExpression>
+#include <QMessageBox>
+#include <QStack>
+
 namespace CalculatorUtils {
 
     int getOperatorPrecedence(const QString& op) {
@@ -85,11 +89,103 @@ namespace CalculatorUtils {
 
     // перевод обычной строки в обратную польскую нотацию
     QStringList convertToRPN(const QString& expression) {
-        // ...
+
+        QStringList outputQueue;  // Очередь для выходной обратной польской записи
+        QStack<QString> operatorStack;  // Стек для операторов
+
+        QStringList tokens = expression.split(' ', Qt::SkipEmptyParts);
+
+        for (const QString& token : tokens) {
+            if (!isOperator(token) && token != "(" && token != ")") {
+                // Проверяем, является ли токен числом
+                bool isNumber;
+                token.toDouble(&isNumber);
+                if (isNumber) {
+                    // Текущий токен - число, добавляем его в выходную очередь
+                    outputQueue.append(token);
+                }
+                else {
+                    // Обработка ошибки - токен не является числом
+                    QMessageBox::warning(nullptr, "Warning", "Unknown operand");
+                }
+            }
+            else if (token == "(") {
+                // Текущий токен - открывающая скобка, добавляем ее в стек операторов
+                operatorStack.push(token);
+            }
+            else if (token == ")") {
+                // Текущий токен - закрывающая скобка
+
+                // Перемещаем операторы из стека в выходную очередь до тех пор,
+                // пока не встретим соответствующую открывающую скобку или стек не опустеет
+                while (!operatorStack.isEmpty() && operatorStack.top() != "(") {
+                    outputQueue.append(operatorStack.pop());
+                }
+
+                // Если стек опустел и не было найдено открывающей скобки, значит в выражении скобки не сбалансированы
+                if (operatorStack.isEmpty()) {
+                    QMessageBox::warning(nullptr, "Warning", "Unbalanced parentheses");
+                    return QStringList();  // Возвращаем пустой список, чтобы обозначить ошибку
+                }
+
+                // Удаляем открывающую скобку из стека
+                operatorStack.pop();
+            }
+            else {
+                // Текущий токен - оператор
+
+                while (!operatorStack.isEmpty() && operatorStack.top() != "(" &&
+                    getOperatorPrecedence(token) <= getOperatorPrecedence(operatorStack.top())) {
+                    // Текущий оператор имеет меньший или равный приоритет, чем оператор на вершине стека
+                    // Перемещаем оператор с вершины стека в выходную очередь
+                    outputQueue.append(operatorStack.pop());
+                }
+
+                // Добавляем текущий оператор в стек
+                operatorStack.push(token);
+            }
+        }
+
+        // Перемещаем оставшиеся операторы из стека в выходную очередь
+        while (!operatorStack.isEmpty()) {
+            outputQueue.append(operatorStack.pop());
+        }
+
+        return outputQueue;
     }
 
-    double calculateExpression(const QString& expression) {
-        // ...
+    double calculateExpression(const QString& expression)
+    {
+        // Создание списка токенов (числа и операторы)
+        QStringList tokens = convertToRPN(expression);
+
+        if (tokens.isEmpty())
+        {
+            return 0;
+        }
+
+        // Заполняем оба стека
+        QStack<double> numbersStack;
+
+        for (const QString& token : tokens) {
+            if (!isOperator(token)) {
+                // Текущий токен - число
+                numbersStack.push(token.toDouble());
+            }
+            else {
+                // Текущий токен - оператор
+
+                // Если введён только операнд без чисел возвращаем 0
+                if (numbersStack.isEmpty()) return 0.0;
+
+                double operand2 = numbersStack.pop();
+                double operand1 = numbersStack.pop();
+                double result = performOperation(operand1, operand2, token);
+                numbersStack.push(result);
+            }
+        }
+
+        return numbersStack.pop();
     }
 
 } // namespace CalculatorUtils
