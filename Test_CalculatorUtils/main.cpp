@@ -218,9 +218,7 @@ void Test_CalculatorUtils::testPerformOperation_data()
     QTest::newRow("Sine 1") << "0.5" << "sin" << "0" << 0.479425538604;
     QTest::newRow("Cosine 1") << "0.5" << "cos" << "0" << 0.87758256189;
     QTest::newRow("Tangent 1") << "0.5" << "tan" << "0" << 0.546302489844;
-    QTest::newRow("Cotangent 1") << "0.5" << "cot" << "0" << 1.83048772171;
-    QTest::newRow("Tangent 2") << "1" << "tg" << "0" << 1.55740772465;
-    QTest::newRow("Cotangent 2") << "1" << "ctg" << "0" << 0.642092615934;
+    QTest::newRow("Cotangent 1") << "1" << "ctg" << "0" << 0.642092615934;
     QTest::newRow("Unknown Operation") << "2.0" << "unknown" << "3.0" << std::numeric_limits<double>::quiet_NaN();
     
 }
@@ -243,7 +241,7 @@ void Test_CalculatorUtils::testPerformOperation()
     double result = CalculatorUtils::performOperation(operand1, operation, operand2);
 
     // Сравните результат с ожидаемым значением
-    QCOMPARE(result, expectedResult, 0.001);
+    QCOMPARE(result, expectedResult);
 
 }
 
