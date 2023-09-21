@@ -104,6 +104,13 @@ void Test_CalculatorUtils::testIsOperator_data()
     QTest::newRow("valid operator ctg") << "ctg" << true;
     QTest::newRow("invalid operator %") << "%" << false;
     QTest::newRow("invalid operator empty") << "" << false;
+    QTest::newRow("invalid operator 1") << "0./" << false;
+    QTest::newRow("invalid operator 2") << "//" << false;
+    QTest::newRow("invalid operator 3") << "**" << false;
+    QTest::newRow("invalid operator 4") << "--" << false;
+    QTest::newRow("invalid operator 5") << "++" << false;
+    QTest::newRow("invalid operator 6") << "21./" << false;
+
 }
 void Test_CalculatorUtils::testIsOperator()
 {

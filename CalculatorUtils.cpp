@@ -10,7 +10,9 @@ namespace CalculatorUtils {
     // Содержит символы [+\\-*/.^lgsqrtloglnsincostancottgctg].
     // Знак минус в методе isOperator он принимает отрицательное число за операнд
     // Поэтому проверка минуса и отрицательного числа вынесена как отдельная функция isNegativeNumber
-    const QString OPERANDS = "[+\\-*/^lgsqrtloglnsincostancottgctg]";
+    const QString OPERATORSWITHFUNCTIONS = "[+\\-*/^lgsqrtloglnsincostancottgctg]";
+
+    const QString OPERATORS = "[+\\-*/^]";
 
     // Шаблон для проверки правильности всех символов в текущем выражении.
     // Может содержать только цифры, скобки, арифметические операторы и функции.
@@ -18,7 +20,7 @@ namespace CalculatorUtils {
 
     // Шаблон для операндов, требующих только один аргумент.
     // Включает функции [lgsqrtloglnsincostancottgctg].
-    const QString OPERANDSRWITHONEARG = "[lgsqrtloglnsincostancottgctg]";
+    const QString FUNCTIONS = "[lgsqrtloglnsincostancottgctg]";
 
     // Вовхрващает значение приоритета операции - чем выше приоритет, тем раньше она выполняется
     int getOperatorPrecedence(const QString& op) {
@@ -46,9 +48,16 @@ namespace CalculatorUtils {
 
     bool isOperator(const QString& input)
     {
-        QRegularExpression validRegex(OPERANDS);
-        QRegularExpressionMatch match = validRegex.match(input);
-        return match.hasMatch();
+        QRegularExpression operatorsRegex(OPERATORS);
+        QRegularExpression functionsRegex(FUNCTIONS);
+
+        if (operatorsRegex.match(input).hasMatch() && operatorsRegex.match(input).captured() == input) {
+            // Если input соответствует арифметическому оператору и является полным оператором, вернуть true.
+            return true;
+        }
+
+        return functionsRegex.match(input).hasMatch();
+
     }
 
     bool isNegativeNumber(const QString& input)
@@ -61,7 +70,7 @@ namespace CalculatorUtils {
 
     bool isOperatorWithOneOperand(const QString& input)
     {
-        QRegularExpression validRegex(OPERANDSRWITHONEARG);
+        QRegularExpression validRegex(FUNCTIONS);
         QRegularExpressionMatch match = validRegex.match(input);
         return match.hasMatch();
     }
@@ -227,12 +236,22 @@ namespace CalculatorUtils {
         QStack<double> numbersStack;
 
         for (const QString& token : tokens) {
+
+
             if (!isOperator(token) || isNegativeNumber(token)) {
                 // Текущий токен - число
                 numbersStack.push(token.toDouble());
             }
             else {
                 // Текущий токен - оператор
+
+                // Если токен это и не число и не оператор обрабатываем ошибку
+                if (!isOperator(token)) {
+                    // Вывести сообщение об ошибке пользователю
+                    qDebug() << "Ошибка: Некорректный ввод - " << token;
+                    // Вернуть "nan" или другое специальное значение, чтобы обозначить ошибку
+                    return std::numeric_limits<double>::quiet_NaN();
+                }
 
                 if (isOperatorWithOneOperand(token)) {
                     double operand1 = numbersStack.pop();
