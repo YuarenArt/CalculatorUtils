@@ -1,7 +1,6 @@
 #include <QRegularExpression>
 #include <QMessageBox>
 #include <QStack>
-#include <QJSEngine>
 #include <stack>
 
 //пространство имен
@@ -58,7 +57,6 @@ namespace CalculatorUtils {
         QRegularExpressionMatch match = validRegex.match(input);
         bool isMinusBeforeNumber = match.hasMatch();
         return isMinusBeforeNumber;
-
     }
 
     bool isOperatorWithOneOperand(const QString& input)
@@ -108,7 +106,7 @@ namespace CalculatorUtils {
             return operand1 + operand2;
         }
         if (operation == "-") {
-            return operand2 - operand1;
+            return operand1 - operand2;
         }
         if (operation == "*") {
             return operand1 * operand2;
@@ -117,10 +115,10 @@ namespace CalculatorUtils {
             if (operand1 == 0) {
                 QMessageBox::warning(nullptr, "Warning", "You divide by zero");
             }
-            return operand2 / operand1;
+            return operand1 / operand2;
         }
         if (operation == "^") {
-            return pow(operand2, operand1);
+            return pow(operand1, operand2);
         }
         if (operation == "sqrt") {
             return sqrt(operand1);
@@ -146,102 +144,6 @@ namespace CalculatorUtils {
 
         // Ќеподдерживаема€ операци€
         return std::numeric_limits<double>::quiet_NaN();
-    }
-
-    // use javascript, bu dont calculate function (for example ln10, cos(1), etc.)
-    double calculateExpressionQJSEngine(const QString& expression) {
-        QJSEngine engine;
-        QJSValue result = engine.evaluate(expression);
-        if (result.isError()) {
-            qDebug() << "Error evaluating expression:" << result.toString();
-            return 0.0;
-        }
-        return result.toNumber();
-    }
-
-    // this method doesn't work
-    double calculateExpressionWithStack(const QString& expression) {
-        std::stack<double> operands;
-        std::stack<QChar> operators;
-
-        int pos = 0;
-        while (pos < expression.size()) {
-            if (expression[pos].isSpace()) {
-                pos++;
-                continue;
-            }
-
-            if (expression[pos].isDigit()) {
-                bool ok = false;
-                double number = expression.mid(pos).toDouble(&ok);
-                if (ok) {
-                    operands.push(number);
-                    while (pos < expression.size() && (expression[pos].isDigit() || expression[pos] == '.')) {
-                        pos++; // Move the position to the end of the number
-                    }
-                    continue;
-                }
-                else {
-                    // Handle error case here if needed
-                    break;
-                }
-            }
-
-            if (isOperator(expression[pos])) {
-                while (!operators.empty() && getOperatorPrecedence(operators.top()) >= getOperatorPrecedence(expression[pos])) {
-                    double rightOperand = operands.top();
-                    operands.pop();
-                    double leftOperand = operands.top();
-                    operands.pop();
-                    QChar op = operators.top();
-                    operators.pop();
-                    operands.push(performOperation(leftOperand, op, rightOperand));
-                }
-                operators.push(expression[pos]);
-            }
-            else if (expression[pos] == '(') {
-                operators.push(expression[pos]);
-            }
-            else if (expression[pos] == ')') {
-                while (!operators.empty() && operators.top() != '(') {
-                    double rightOperand = operands.top();
-                    operands.pop();
-                    double leftOperand = operands.top();
-                    operands.pop();
-                    QChar op = operators.top();
-                    operators.pop();
-                    operands.push(performOperation(leftOperand, op, rightOperand));
-                }
-                if (!operators.empty()) {
-                    operators.pop(); // Remove the corresponding '('
-                }
-            }
-            else {
-                // Invalid character in the expression
-                // Handle error case here if needed
-                break;
-            }
-
-            pos++;
-        }
-
-        while (!operators.empty()) {
-            double rightOperand = operands.top();
-            operands.pop();
-            double leftOperand = operands.top();
-            operands.pop();
-            QChar op = operators.top();
-            operators.pop();
-            operands.push(performOperation(leftOperand, op, rightOperand)); 
-        }
-
-        if (!operands.empty()) {
-            return operands.top();
-        }
-        else {
-            // Handle error case here if needed (e.g., invalid expression)
-            return 0;
-        }
     }
 
     // перевод обычной строки в обратную польскую нотацию
@@ -345,7 +247,7 @@ namespace CalculatorUtils {
                     operand1 = numbersStack.pop();
                 }
 
-                double result = performOperation(operand2, token, operand1);
+                double result = performOperation(operand1, token, operand2);
                 numbersStack.push(result);
 
             }
@@ -388,8 +290,18 @@ namespace CalculatorUtils {
 
         formattedText.replace(QRegularExpression("([cossintgtancthcotloglnsqrtlg^])\\s+(\\d+)"), "\\1 ( \\2 )");
 
+        // удал€ем все лишние нули перед точкой ( 00000.21 = 0.21)
+        formattedText.replace(QRegularExpression("^(0)(0*)(\\..*)?$"), "\\1\\3");
+
         // «амена числа на формат 0.xxx, если число начинаетс€ с нул€ (021 = 0.21)
-        formattedText.replace(QRegularExpression("(0)([1-9])"), "\\1.\\2");
+        formattedText.replace(QRegularExpression("(0)([1-9])(0*)"), "\\1.\\2\\3");
+
+        // уда€ем лишние точки 
+        formattedText.replace(QRegularExpression("(\\.)([1-9]+)(0+)(\\.)"), "\\1\\2\\3");
+
+        // «аменить последовательность нулей, за которой следует точка и хот€ бы одна ненулева€ цифра,
+        // на одиночный ноль, точку и ненулевую цифру.
+        formattedText.replace(QRegularExpression("(0+)(.)([1-9])"), "0\\2\\3");
 
         // «амена ',' при вводе чисел на '.' дл€ правильных вычислений
         formattedText.replace(QRegularExpression(","), ".");
