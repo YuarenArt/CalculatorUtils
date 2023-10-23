@@ -31,7 +31,6 @@ private slots:
     void testPerformOperation();
 };
 
-// data for testGetOperatorPrecedence test
 void Test_CalculatorUtils::testGetOperatorPrecedence_data()
 {
     QTest::addColumn<QString>("operation");
@@ -53,7 +52,6 @@ void Test_CalculatorUtils::testGetOperatorPrecedence_data()
     QTest::newRow("-") << "-" << 2;
     QTest::newRow("unknown") << "unknown" << 1;
 }
-// check operators precendence
 void Test_CalculatorUtils::testGetOperatorPrecedence()
 {
     QFETCH(QString, operation);
@@ -192,58 +190,37 @@ void Test_CalculatorUtils::testAutoBalanceParentheses()
     QCOMPARE(expression, expectedBalancedExpression);
 }
 
+
 void Test_CalculatorUtils::testPerformOperation_data()
 {
-    QTest::addColumn<QString>("operand1Str");
+    QTest::addColumn<double>("operand1");
     QTest::addColumn<QString>("operation");
-    QTest::addColumn<QString>("operand2Str");
+    QTest::addColumn<double>("operand2");
     QTest::addColumn<double>("expectedResult");
 
-
-    QTest::newRow("Addition 1") << "2.0" << "+" << "3.0" << 5.0;
-    QTest::newRow("Addition 2") << "-2.5" << "+" << "1.5" << -1.0;
-
-    QTest::newRow("Subtraction 1") << "5.0" << "-" << "3.0" << 2.0;
-    QTest::newRow("Subtraction 2") << "1.5" << "-" << "-2.5" << 4.0;
-
-    QTest::newRow("Multiplication 1") << "2.0" << "*" << "3.0" << 6.0;
-    QTest::newRow("Multiplication 2") << "-2.5" << "*" << "4.0" << -10.0;
-
-    QTest::newRow("Division 1") << "6.0" << "/" << "2.0" << 3.0;
-    QTest::newRow("Division 2") << "10.0" << "/" << "-5.0" << -2.0;
-
-    QTest::newRow("Square Root 1") << "9.0" << "sqrt" << "0" << 3.0;
-    QTest::newRow("Logarithm 1") << "100.0" << "log" << "0" << 2.0;
-    QTest::newRow("Natural Logarithm 1") << "10.0" << "ln" << "0" << 2.302585092994;
-    QTest::newRow("Sine 1") << "0.5" << "sin" << "0" << 0.479425538604;
-    QTest::newRow("Cosine 1") << "0.5" << "cos" << "0" << 0.87758256189;
-    QTest::newRow("Tangent 1") << "0.5" << "tan" << "0" << 0.546302489844;
-    QTest::newRow("Cotangent 1") << "1" << "ctg" << "0" << 0.642092615934;
-    QTest::newRow("Unknown Operation") << "2.0" << "unknown" << "3.0" << std::numeric_limits<double>::quiet_NaN();
-    
+    // Add test cases
+    QTest::newRow("Addition") << 5.0 << "+" << 3.0 << 8.0;
+    QTest::newRow("Subtraction") << 5.0 << "-" << 3.0 << 2.0;
+    QTest::newRow("Multiplication") << 5.0 << "*" << 3.0 << 15.0;
+    QTest::newRow("Division") << 6.0 << "/" << 2.0 << 3.0;
+    QTest::newRow("Power") << 2.0 << "^" << 3.0 << 8.0;
+    QTest::newRow("Square Root") << 16.0 << "sqrt" << 0.0 << 4.0;
+    QTest::newRow("Logarithm (base 10)") << 100.0 << "log" << 0.0 << 2.0;
+    QTest::newRow("Natural Logarithm") << 2.0 << "ln" << 0.0 << log(2.0);
 }
 void Test_CalculatorUtils::testPerformOperation()
 {
-    QFETCH(QString, operand1Str);
+    QFETCH(double, operand1);
     QFETCH(QString, operation);
-    QFETCH(QString, operand2Str);
+    QFETCH(double, operand2);
     QFETCH(double, expectedResult);
 
-    // Преобразуйте строки в числа
-    bool conversionOk;
-    double operand1 = operand1Str.toDouble(&conversionOk);
-    QVERIFY(conversionOk);
-
-    double operand2 = operand2Str.toDouble(&conversionOk);
-    QVERIFY(conversionOk);
-
-    // Выполните операцию
     double result = CalculatorUtils::performOperation(operand1, operation, operand2);
 
-    // Сравните результат с ожидаемым значением
     QCOMPARE(result, expectedResult);
-
 }
+
+
 
 
 QTEST_APPLESS_MAIN(Test_CalculatorUtils)

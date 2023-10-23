@@ -1,9 +1,8 @@
-#include <QRegularExpression>
 #include <QMessageBox>
 #include <QStack>
-#include <stack>
 
-//пространство имен
+#include "stringRefactor.h"
+
 namespace CalculatorUtils {
 
     // Шаблон для операндов, которые могут использоваться в выражении.
@@ -18,11 +17,9 @@ namespace CalculatorUtils {
     // Может содержать только цифры, скобки, арифметические операторы и функции.
     const QString ALLCURRENTSIMBOL = "^[0-9()+\\-*/.^lgsqrtloglnsincostancottgctg ]+$";
 
-    // Шаблон для операндов, требующих только один аргумент.
-    // Включает функции [lgsqrtloglnsincostancottgctg].
+    // Шаблон для функций которые требуют только один аргумент
     const QString FUNCTIONS = "[lgsqrtloglnsincostancottgctg]";
 
-    // Вовхрващает значение приоритета операции - чем выше приоритет, тем раньше она выполняется
     int getOperatorPrecedence(const QString& op) {
         if (op == "^" || op == "sqrt" || op == "log" || op == "ln" || op == "sin" || op == "cos" || op == "tan" || op == "cot" || op == "tg" || op == "ctg") {
             return 4;
@@ -52,7 +49,6 @@ namespace CalculatorUtils {
         QRegularExpression functionsRegex(FUNCTIONS);
 
         if (operatorsRegex.match(input).hasMatch() && operatorsRegex.match(input).captured() == input) {
-            // Если input соответствует арифметическому оператору и является полным оператором, вернуть true.
             return true;
         }
 
@@ -153,9 +149,8 @@ namespace CalculatorUtils {
 
         // Неподдерживаемая операция
         return std::numeric_limits<double>::quiet_NaN();
-    }
+    } 
 
-    // перевод обычной строки в обратную польскую нотацию
     QStringList convertToRPN(const QString& expression) {
 
         QStringList outputQueue;  // Очередь для выходной обратной польской записи
@@ -164,7 +159,7 @@ namespace CalculatorUtils {
         QStringList tokens = expression.split(' ', Qt::SkipEmptyParts);
 
         for (const QString& token : tokens) {
-            if ( (!isOperator(token) || isNegativeNumber(token)) && token != "(" && token != ")") {
+            if ((!isOperator(token) || isNegativeNumber(token)) && token != "(" && token != ")") {
                 // Проверяем, является ли токен числом
                 bool isNumber;
                 token.toDouble(&isNumber);
@@ -275,90 +270,133 @@ namespace CalculatorUtils {
         return numbersStack.pop();
     }
 
-    // функция которая корректирует полученную строку для корректных вычеслений 
-    // (между числами и операндами должны быть пробелы, автоматически ставит скобки в нужных места и тп.)
     void updateText(QString& formattedText)
     {
         autoBalanceParentheses(formattedText);
 
-        // Добавляем пробелы между числами и операндами, если они отсутствуют
-        QRegularExpression spaceRegex("(\\d)([+\\-*/^sqrtloglnlgsincostancottgctg])");
-        formattedText.replace(spaceRegex, "\\1 \\2 ");
-
-        // Добавляем пробелы перед и после скобок
-        formattedText.replace(QRegularExpression("\\("), " ( ");
-        formattedText.replace(QRegularExpression("\\)"), " ) ");
-
-        // Добавляем знак умножения, если между числом и скобкой есть пробел
-        QRegularExpression numberBracketRegex("(\\d) *\\(");
-        formattedText.replace(numberBracketRegex, "\\1 * (");
-        QRegularExpression bracketNumberRegex("\\) (\\d)");
-        formattedText.replace(bracketNumberRegex, ") * \\1");
-
-        // Добавляем знак умножения, если между скобками нет знака операции
-        formattedText.replace(QRegularExpression("\\)\\s*\\("), ") * (");
-
-        // Удаляем лишние пробелы между числами
-        QRegularExpression numberRegex("(\\d+)\\s*(\\d+)");
-        formattedText.replace(numberRegex, "\\1\\2");
-
-        // Удаления пробела между операндами и числами
-        formattedText.replace(QRegularExpression("([+\\-*/sqrtloglnsincostanlgcottgctg])(\\d+)"), "\\1 \\2");
-        formattedText.replace(QRegularExpression("(\\d+)\\s+([+\\-*/sqrtloglnsinlgcostancottgctg])"), "\\1 \\2");
-        formattedText.replace(QRegularExpression("([+\\-*/]sqrtloglnsincostancottgctglg)\\s*(\\d+)"), "\\1 \\2");
-
-        formattedText.replace(QRegularExpression("([cossintgtancthcotloglnsqrtlg^])\\s+(\\d+)"), "\\1 ( \\2 )");
-
-        // удаляем все лишние нули перед точкой ( 00000.21 = 0.21)
-        formattedText.replace(QRegularExpression("^(0)(0*)(\\..*)?$"), "\\1\\3");
-
-        // Замена числа на формат 0.xxx, если число начинается с нуля (021 = 0.21)
-        formattedText.replace(QRegularExpression("(0)([1-9])(0*)"), "\\1.\\2\\3");
-
-        // удаяем лишние точки 
-        formattedText.replace(QRegularExpression("(\\.)([1-9]+)(0+)(\\.)"), "\\1\\2\\3");
-
-        // Заменить последовательность нулей, за которой следует точка и хотя бы одна ненулевая цифра,
-        // на одиночный ноль, точку и ненулевую цифру.
-        formattedText.replace(QRegularExpression("(0+)(.)([1-9])"), "0\\2\\3");
-
-        // Замена ',' при вводе чисел на '.' для правильных вычислений
-        formattedText.replace(QRegularExpression(","), ".");
-
-        formattedText.replace(QRegularExpression("([+\\-*/sqrtloglnsincostanlgcottgctg(]) (-) (\\d+)"), "\\1 \\2\\3");
-
-        // удаляем все лишние пробелы
-        formattedText.replace(QRegularExpression("\\s+"), " ");
+        StringRefactor refactoredString(formattedText);
+        refactoredString.updateStandartText();
     }
 
-    // Функция для подсчета значения выражения
-    double evaluateFunction(const QString& expression, const QString& variable, double x)
+    double evaluateExpressionWithVariable(const QString& expression, const QString& variable, double variableValue)
     {
-        QString xString = QString::number(x);
-        QString evaluatedExpression = expression;
-        evaluatedExpression.replace(variable, xString);
+        QString variableValueString = QString::number(variableValue);
+        QString substitutedExpression = expression;
+        substitutedExpression.replace(variable, variableValueString);
 
-        return calculateExpressionWithRPN(evaluatedExpression);
+        return calculateExpressionWithRPN(substitutedExpression);
     }
 
-    double calculateSimpsonIntegral(QString&  function, const QString& variable, const double& upperLimit, const double& lowerLimit, const qint64& n = 1000)
+    double calculateIntegralSimpsonsMethod(QString&  function, const QString& variable, const double& upperLimit, const double& lowerLimit, const qint64& n = 1000)
     {
 
         double h = (upperLimit - lowerLimit) / n;
-        double sum = evaluateFunction(function, variable, lowerLimit) + evaluateFunction(function, variable, upperLimit);
+        double sum = evaluateExpressionWithVariable(function, variable, lowerLimit) + evaluateExpressionWithVariable(function, variable, upperLimit);
 
         for (size_t i = 1; i < n; i += 2) {
             double x = lowerLimit + i * h;
-            sum += 4 * evaluateFunction(function, variable, x);
+            sum += 4 * evaluateExpressionWithVariable(function, variable, x);
         }
 
         for (size_t i = 2; i < n - 1; i += 2) {
             double x = lowerLimit + i * h;
-            sum += 2 * evaluateFunction(function, variable, x);
+            sum += 2 * evaluateExpressionWithVariable(function, variable, x);
         }
 
         double result = sum * h / 3.0;
         return result;
 
     }
-} // namespace CalculatorUtils
+
+} 
+
+// stringRefactor methods
+namespace CalculatorUtils {
+
+    StringRefactor::StringRefactor(QString& text) : formattedText(text) {}
+
+    void StringRefactor::updateStandartText()
+    {
+        addSpacesBetweenNumbersAndOperators();
+        addSpacesAroundBrackets();
+        addMultiplicationOperator();
+        removeExtraSpacesBetweenNumbers();
+        removeSpaceBetweenOperatorsAndNumbers();
+        formatNumbersWithOperators();
+        removeLeadingZerosAndNormalizeDecimals();
+        removeExtraDecimals();
+        replaceCommasWithPeriods();
+        handleMinusSigns();
+        removeExtraSpaces();
+    }
+
+    void StringRefactor::addSpacesBetweenNumbersAndOperators()
+    {
+        QRegularExpression spaceRegex("(\\d)([+\\-*/^sqrtloglnlgsincostancottgctg])");
+        formattedText.replace(spaceRegex, "\\1 \\2 ");
+    }
+
+    void StringRefactor::addSpacesAroundBrackets()
+    {
+        formattedText.replace(QRegularExpression("\\("), " ( ");
+        formattedText.replace(QRegularExpression("\\)"), " ) ");
+    }
+
+    void StringRefactor::addMultiplicationOperator()
+    {
+        QRegularExpression numberBracketRegex("(\\d) *\\(");
+        formattedText.replace(numberBracketRegex, "\\1 * (");
+        QRegularExpression bracketNumberRegex("\\) (\\d)");
+        formattedText.replace(bracketNumberRegex, ") * \\1 ");
+        formattedText.replace(QRegularExpression("\\)\\s*\\("), ") * (");
+    }
+
+    void StringRefactor::removeExtraSpacesBetweenNumbers()
+    {
+        QRegularExpression numberRegex("(\\d+)\\s*(\\d+)");
+        formattedText.replace(numberRegex, "\\1\\2");
+    }
+
+    void StringRefactor::removeSpaceBetweenOperatorsAndNumbers()
+    {
+        formattedText.replace(QRegularExpression("([+\\-*/sqrtloglnsincostancottgctglg])(\\d+)"), "\\1 \\2");
+        formattedText.replace(QRegularExpression("(\\d+)\\s+([+\\-*/sqrtloglnsinlgcostancottgctg])"), "\\1 \\2");
+        formattedText.replace(QRegularExpression("([+\\-*/]sqrtloglnsincostancottgctglg)\\s*(\\d+)"), "\\1 \\2");
+        formattedText.replace(QRegularExpression("([cossintgtancthcotloglnsqrtlg^])\\s+(\\d+)"), "\\1 ( \\2 )");
+    }
+
+    void StringRefactor::formatNumbersWithOperators()
+    {
+        formattedText.replace(QRegularExpression("^(0)(0*)(\\..*)?$"), "\\1\\3");
+        formattedText.replace(QRegularExpression("(0)([1-9])(0*)"), "\\1.\\2\\3");
+        formattedText.replace(QRegularExpression("(\\.)([1-9]+)(0+)(\\.)"), "\\1\\2\\3");
+        formattedText.replace(QRegularExpression("(0+)(.)([1-9])"), "0\\2\\3");
+    }
+
+    void StringRefactor::removeLeadingZerosAndNormalizeDecimals()
+    {
+        formattedText.replace(QRegularExpression("^(0)(0*)(\\..*)?$"), "\\1\\3");
+        formattedText.replace(QRegularExpression("(0)([1-9])(0*)"), "\\1.\\2\\3");
+    }
+
+    void StringRefactor::removeExtraDecimals()
+    {
+        formattedText.replace(QRegularExpression("(\\.)([1-9]+)(0+)(\\.)"), "\\1\\2\\3");
+    }
+
+    void StringRefactor::replaceCommasWithPeriods()
+    {
+        formattedText.replace(QRegularExpression(","), ".");
+    }
+
+    void StringRefactor::handleMinusSigns()
+    {
+        formattedText.replace(QRegularExpression("([+\\-*/sqrtloglnsincostanlgcottgctg(]) (-) (\\d+)"), "\\1 \\2\\3");
+    }
+
+    void StringRefactor::removeExtraSpaces()
+    {
+        formattedText.replace(QRegularExpression("\\s+"), " ");
+    }
+
+}
