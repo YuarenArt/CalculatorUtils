@@ -7,10 +7,13 @@ namespace CalculatorUtils {
     class StringRefactor
     {
     public:
-        StringRefactor(QString& text);
+        StringRefactor(QString text);
         void updateStandartText();
+        QString getFormattedText();
 
     private:
+
+        QString formattedText;
 
         void addSpacesBetweenNumbersAndOperators();
         void addSpacesAroundBrackets();
@@ -23,7 +26,5 @@ namespace CalculatorUtils {
         void replaceCommasWithPeriods();
         void handleMinusSigns();
         void removeExtraSpaces();
-
-        QString& formattedText;
     };
 }

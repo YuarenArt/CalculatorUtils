@@ -313,7 +313,7 @@ namespace CalculatorUtils {
 // stringRefactor methods
 namespace CalculatorUtils {
 
-    StringRefactor::StringRefactor(QString& text) : formattedText(text) {}
+    StringRefactor::StringRefactor(QString text) : formattedText(text) {}
 
     void StringRefactor::updateStandartText()
     {
@@ -328,6 +328,11 @@ namespace CalculatorUtils {
         replaceCommasWithPeriods();
         handleMinusSigns();
         removeExtraSpaces();
+    }
+
+    QString StringRefactor::getFormattedText()
+    {
+        return formattedText;
     }
 
     void StringRefactor::addSpacesBetweenNumbersAndOperators()
