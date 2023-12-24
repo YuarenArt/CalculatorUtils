@@ -27,6 +27,5 @@ namespace CalculatorUtils {
         void removeExtraDecimals();
         void replaceCommasWithPeriods();
         void removeExtraSpaces();
-
     };
 }
