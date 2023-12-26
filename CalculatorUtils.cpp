@@ -1,5 +1,3 @@
-#pragma once
-
 #include <QMessageBox>
 #include <QStack>
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QString>
+#include "stringRefactor.h"
 
 namespace CalculatorUtils {
 
@@ -17,5 +18,7 @@ namespace CalculatorUtils {
 	double calculateExpressionWithVariable(const QString& expression, const QString& variable, double variableValue);
 	double calculateIntegralSimpsonsMethod(QString& function, const QString& variable, const double& upperLimit,
 		const double& lowerLimit, const qint64& n = 1000);
+
+	StringRefactor;
 
 }
