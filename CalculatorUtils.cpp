@@ -1,6 +1,9 @@
+#pragma once
+
 #include <QMessageBox>
 #include <QStack>
 
+#include "CalculatorUtils.h"
 #include "stringRefactor.h"
 
 
@@ -97,7 +100,7 @@ namespace CalculatorUtils {
     }
 
     // расчитываете выражение
-    double performOperation(double operand1, const QString& operation, double operand2 = 0) {
+    double performOperation(double operand1, const QString& operation, double operand2) {
         if (operation == "+") {
             return operand1 + operand2;
         }
@@ -108,7 +111,7 @@ namespace CalculatorUtils {
             return operand1 * operand2;
         }
         if (operation == "/") {
-            if (operand1 == 0) {
+            if (operand2 == 0) {
                 QMessageBox::warning(nullptr, "Warning", "You divide by zero");
             }
             return operand1 / operand2;
@@ -278,7 +281,7 @@ namespace CalculatorUtils {
         return calculateExpressionWithRPN(substitutedExpression);
     }
 
-    double calculateIntegralSimpsonsMethod(QString&  function, const QString& variable, const double& upperLimit, const double& lowerLimit, const qint64& n = 1000)
+    double calculateIntegralSimpsonsMethod(QString&  function, const QString& variable, const double& upperLimit, const double& lowerLimit, const qint64& n)
     {
 
         double h = (upperLimit - lowerLimit) / n;

@@ -86,6 +86,7 @@
     <ClCompile Include="CalculatorUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CalculatorUtils.h" />
     <ClInclude Include="stringRefactor.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
